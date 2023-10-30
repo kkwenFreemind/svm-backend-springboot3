@@ -16,16 +16,13 @@ import java.util.List;
 @Repository
 public interface OrganizationRepository extends JpaRepository<Organization, Long> {
 
-    @Query(value = "SELECT m.* FROM organization WHERE m.parent_id = :parentId",nativeQuery = true)
-    List<Organization> getOrgListByParentId(@Param("parentId") Long parentId);
-
     /**
-     * Get Org Data By orgName
-     * @param name
+     * 顯示該單位下是否有sub單位
+     * @param parentId
      * @return
      */
-    @Query(value = "SELECT m.* FROM organization m WHERE m.name = :name",nativeQuery = true)
-    Organization getOrgByName(@Param("name") String name);
+    @Query(value = "SELECT m.* FROM organization m WHERE m.parent_id = :parentId",nativeQuery = true)
+    List<Organization> getOrgListByParentId(@Param("parentId") Long parentId);
 
     /**
      * Get Max Org Id Number
@@ -33,9 +30,6 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
      */
     @Query(value = "SELECT count(*) as maxvalue FROM organization",nativeQuery = true)
     Long getOrgMax();
-
-    @Query(value = "SELECT m.* FROM organization m",nativeQuery = true)
-    List<Organization> listCombox(Pageable pageable);
 
 
 }

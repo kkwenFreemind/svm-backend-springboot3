@@ -21,7 +21,7 @@ public class Organization {
     private Long id;
 
     @Schema(description = "上層組織代碼")
-    private Long parentId;
+    private Long parent_id;
 
     @Schema(description = "組織編號")
     private String name_sn;
@@ -48,10 +48,9 @@ public class Organization {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
 
         StringBuilder dataBuilder = new StringBuilder();
-//        appendFieldValue(dataBuilder, id.toString());
         appendFieldValue(dataBuilder, simpleDateFormat.format(createTime));
         appendFieldValue(dataBuilder, org_name);
-        appendFieldValue(dataBuilder, parentId.toString());
+        appendFieldValue(dataBuilder, parent_id.toString());
         appendFieldValue(dataBuilder, name_sn);
         appendFieldValue(dataBuilder, level.toString());
         appendFieldValue(dataBuilder, status.toString());
