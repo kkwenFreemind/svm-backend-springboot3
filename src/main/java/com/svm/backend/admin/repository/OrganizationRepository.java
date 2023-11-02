@@ -24,12 +24,5 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
     @Query(value = "SELECT m.* FROM organization m WHERE m.parent_id = :parentId",nativeQuery = true)
     List<Organization> getOrgListByParentId(@Param("parentId") Long parentId);
 
-    /**
-     * Get Max Org Id Number
-     * @return
-     */
-    @Query(value = "SELECT count(*) as maxvalue FROM organization",nativeQuery = true)
-    Long getOrgMax();
-
 
 }

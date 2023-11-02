@@ -52,6 +52,7 @@ public class ApiEvents {
     @Schema(description = "花費時間：毫秒")
     private Long eventCost;
 
+    public ApiEvents(){}
     public ApiEvents(Long userId , String ipAddress,String requestMethod,String username,String event,Integer status,String result,String memo,Integer logType,Long eventCost ){
         this.userId = userId;
         this.ipAddress = ipAddress;

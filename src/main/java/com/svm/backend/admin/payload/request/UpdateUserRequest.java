@@ -5,14 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.util.Set;
-
-/**
- * @Author : Kevin Chang
- * @create 2023/9/6 下午4:19
- */
 @Data
-public class SignupRequest {
+public class UpdateUserRequest {
+
+    @NotBlank
+    private Long Id;
 
     @NotBlank
     @Size(min = 3, max = 20)
@@ -23,17 +20,14 @@ public class SignupRequest {
     @Email
     private String email;
 
-    private Set<String> role;
-
     @NotBlank
     @Size(min = 6, max = 40)
     private String password;
 
     private String mobile;
-    private String nickName;
+
     private String note;
+
     private Integer status;
     private Long org_id;
-
-
 }

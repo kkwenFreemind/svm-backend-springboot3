@@ -49,7 +49,6 @@ public class Role {
     @Schema(description = "啟用狀態：0->停用；1->啟用")
     private Integer status;
 
-
     private Integer sort;
     public Role() {
 

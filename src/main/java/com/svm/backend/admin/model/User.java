@@ -41,9 +41,6 @@ public class User {
     @Size(max = 120)
     private String password;
 
-    @Schema(description = "密碼到期日")
-    private Date password_expired_date;
-
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(  name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -81,15 +78,6 @@ public class User {
     @JoinColumn(name = "org_id")
     private Organization organization;
 
-
-//    @Transient
-//    @Schema(description = "組織編碼")
-//    private String name_sn;
-//
-//    @Transient
-//    @Schema(description = "組織名稱")
-//    private String org_name;
-
     @Schema(description = "創建者ID")
     private Long createBy;
 
@@ -107,7 +95,7 @@ public class User {
     public User() {
     }
 
-    public User(String username, String email, String password,Date createTime,String mobile ,Integer status,String nickName, String note,Long orgId,Long createBy,String createName) {
+    public User(String username, String email, String password,Date createTime,String mobile ,Integer status,String nickName, String note,Long createBy,String createName) {
         this.username = username;
         this.email = email;
         this.password = password;

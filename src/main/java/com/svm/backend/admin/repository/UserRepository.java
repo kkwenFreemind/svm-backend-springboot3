@@ -19,13 +19,17 @@ import java.util.Optional;
 @Transactional
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    @Query(value = "select r.* from users r where r.org_id = :orgId",nativeQuery = true)
+    List<User> findUserByOrgId(@Param("orgId") Long orgId);
+
     @Query(value = "select r.* from users r where r.username = :username and r.status = 1",nativeQuery = true)
     Optional<User> findActiveUserByUsername(@Param("username") String username);
+
     Boolean existsByUsername(String username);
 
     Boolean existsByEmail(String email);
 
-    @Query(value = "select a.*,b.org_name ,b.name_sn from users a left join organization b on (a.org_id = b.id)",nativeQuery = true)
+    @Query(value = "select a.*,b.org_name as orgName,b.name_sn as nameSn from users a left join organization b on (a.org_id = b.id)",nativeQuery = true)
     List<User> getAllUser();
 
     @Query(value = "select a.* from users a where username like CONCAT('%',:username,'%')",nativeQuery = true)

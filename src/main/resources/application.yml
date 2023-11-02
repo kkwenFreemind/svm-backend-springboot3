@@ -9,15 +9,20 @@ spring:
   jpa:
     properties:
       dialect: org.hibernate.dialect.MySQLDialect
-    hibernate:
-      ddl-auto: update
       show-sql: true
-
+    hibernate:
+      ddl-auto: none
+      show-sql: true
+  type:
+    descriptor:
+      sql:
+        BasicBinder: TRACE
 
 logging:
   config: classpath:logback-spring.xml
   level:
     com.svm.backend: trace
+#    org.hibernate.SQL: DEBUG
 
 jwt:
   app:

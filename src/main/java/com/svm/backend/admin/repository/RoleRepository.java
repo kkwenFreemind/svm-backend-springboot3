@@ -1,6 +1,7 @@
 package com.svm.backend.admin.repository;
 
 import com.svm.backend.admin.model.Role;
+import com.svm.backend.admin.model.User;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,4 +20,11 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
 
     @Query(value = "select r.* from user_roles ar left join roles r on ar.role_id = r.id where ar.user_id = :userId",nativeQuery = true)
     List<Role> getRoleList(@Param("userId") Long userId);
+
+
+    @Query(value = "select a.* from roles a where name like CONCAT('%',:name,'%')",nativeQuery = true)
+    List<Role> getRoleByLike(@Param("name") String name);
+
+//    @Query(value = "select a.*, count(b.admin_id) as adminCount from ums_role a left join ums_admin_role_relation b on a.id = b.role_id group by a.id, a.name, a.description, a.create_time, a.status, a.sort",nativeQuery = true)
+//    List<Role> getAllRoleAndCount();
 }

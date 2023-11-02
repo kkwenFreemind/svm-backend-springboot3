@@ -8,7 +8,7 @@ import java.util.Date;
 
 /**
  * @Author : Kevin Chang
- * @create 2023/9/11 上午10:43
+ * @create 2023/10/31 上午10:43
  */
 @Entity
 @Data
@@ -42,6 +42,7 @@ public class Menus {
 
         @Schema(description = "前端是否隱藏")
         private Integer hidden;
+
 
         public Menus() {
 
