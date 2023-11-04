@@ -11,6 +11,6 @@ springdoc:
     enabled: false
 
 logging:
-  config: classpath:logback-spring.xml
+  config: classpath:logback-spring-prod.xml
   level:
     com.svm.backend: info

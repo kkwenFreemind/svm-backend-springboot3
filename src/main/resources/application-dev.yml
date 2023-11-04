@@ -11,7 +11,7 @@ springdoc:
     enabled: true
 
 logging:
-  config: classpath:logback-spring.xml
+  config: classpath:logback-spring-dev.xml
   level:
     com.svm.backend: trace
     org.hibernate.SQL: DEBUG
