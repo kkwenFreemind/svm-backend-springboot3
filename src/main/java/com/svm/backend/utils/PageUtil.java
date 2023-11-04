@@ -1,10 +1,8 @@
 package com.svm.backend.utils;
 
-import com.svm.backend.admin.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -15,6 +13,7 @@ import java.util.List;
 public class PageUtil {
 
     public static <T> Page<T> listToPage(List<T> list, int page, int size) {
+        page = page - 1;
         int start = page * size;
         int end = Math.min(start + size, list.size());
 
@@ -26,8 +25,6 @@ public class PageUtil {
 
         return pageResult;
     }
-
-
 
 
 }

@@ -18,11 +18,8 @@ import com.svm.backend.admin.security.service.UserDetailsImpl;
 import com.svm.backend.common.api.CommonPage;
 import com.svm.backend.common.api.CommonResult;
 import com.svm.backend.utils.IpUtil;
-import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.SortDefault;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -37,8 +34,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @Author : Kevin Chang
- * @create 2023/9/13 上午9:43
+ * @Author : Kevin Chang on 2023/9/13 上午9:43
  */
 @Slf4j
 @RestController
@@ -122,7 +118,7 @@ public class AdminController {
 
         } catch (Exception exception) {
 
-            log.info("login exception=>" + exception.toString());
+            log.info(loginRequest.getUsername() + " login exception=>" + exception.toString());
             ApiEvents apiEvents = new ApiEvents(999L, ipAddress, request.getMethod(), loginRequest.getUsername(), request.getRequestURL().toString(), 0, "failed" + exception.toString(), userAgent, 1, sw.getTotalTimeMillis());
             apiEventRepository.save(apiEvents);
 
@@ -145,11 +141,6 @@ public class AdminController {
             @RequestHeader(value = "User-Agent") String userAgent,
             Principal principal) {
 
-        StopWatch sw = new StopWatch();
-        sw.start("info Start");
-
-        String ipAddress = IpUtil.getIpAddr(request);
-
         String username = principal.getName();
         User user = userRepository.findActiveUserByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
@@ -167,7 +158,6 @@ public class AdminController {
                 data.put("roles", roles);
             }
 
-            sw.stop();
 
             if (menuRepository.getMenuList(user.getId()).isEmpty() || roleRepository.getRoleList(user.getId()).isEmpty()) {
                 //該帳號沒有設定對應的menu or resource (api)
@@ -177,15 +167,10 @@ public class AdminController {
                 return CommonResult.failed("account did not config any resource");
             } else {
                 //Success Audit log
-                ApiEvents apiEvents = new ApiEvents(user.getId(), ipAddress, request.getMethod(), user.getUsername(), request.getRequestURL().toString(), 1, "success", userAgent, 0, sw.getTotalTimeMillis());
-                apiEventRepository.save(apiEvents);
                 return CommonResult.success(data);
             }
         } catch (Exception exception) {
             //Failed Audit log
-            ApiEvents apiEvents = new ApiEvents(999L, ipAddress, request.getMethod(), "test", request.getRequestURL().toString(), 0, "failed", userAgent, 1, sw.getTotalTimeMillis());
-            apiEventRepository.save(apiEvents);
-
             return CommonResult.unauthorized(null);
         }
     }
@@ -210,17 +195,8 @@ public class AdminController {
             @RequestParam(value = "pageNum") Integer pageNum,
             @RequestParam(value = "pageSize") Integer pageSize) {
 
-        StopWatch sw = new StopWatch();
-        sw.start("admin list Start");
-        String ipAddress = IpUtil.getIpAddr(request);
-
-        String username = principal.getName();
-        User user = userRepository.findActiveUserByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
-
         //正文開始
 
-        pageNum = pageNum - 1;
         List<User> adminList;
         if (Objects.isNull(keyword)) {
             adminList = userRepository.findAll();
@@ -228,12 +204,6 @@ public class AdminController {
             adminList = userRepository.getUserByLike(keyword);
         }
         Page<User> pageData = PageUtil.listToPage(adminList, pageNum, pageSize);
-
-        sw.stop();
-
-        //Success Audit log
-        ApiEvents apiEvents = new ApiEvents(user.getId(), ipAddress, request.getMethod(), user.getUsername(), request.getRequestURL().toString(), 1, "success", userAgent, 0, sw.getTotalTimeMillis());
-        apiEventRepository.save(apiEvents);
 
         return CommonResult.success(CommonPage.restPage(pageData));
     }
@@ -305,7 +275,6 @@ public class AdminController {
 
         //正文開始
         try {
-
             if (userRepository.existsByUsername(signUpRequest.getUsername())) {
                 return CommonResult.failed("Error: Username is already taken!");
             }
@@ -444,20 +413,7 @@ public class AdminController {
             @RequestHeader(value = "User-Agent") String userAgent,
             Principal principal) {
 
-        StopWatch sw = new StopWatch();
-        sw.start("updateStatus Start");
-        String ipAddress = IpUtil.getIpAddr(request);
-
-        String username = principal.getName();
-        User user = userRepository.findActiveUserByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
-
         List<Role> roleList = roleRepository.getRoleList(adminId);
-        sw.stop();
-
-        ApiEvents apiEvents = new ApiEvents(user.getId(), ipAddress, request.getMethod(), user.getUsername(), request.getRequestURL().toString(), 1, "success", userAgent, 0, sw.getTotalTimeMillis());
-        apiEventRepository.save(apiEvents);
-
         return CommonResult.success(roleList);
     }
 
@@ -509,5 +465,53 @@ public class AdminController {
         apiEventRepository.save(apiEvents);
         return CommonResult.success(count);
 
+    }
+
+    @RequestMapping(value = "/listMyAccount", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult<CommonPage<User>> listMyAccount(
+            HttpServletRequest request,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestHeader(value = "User-Agent") String userAgent,
+            Principal principal) {
+
+        String username = principal.getName();
+        User user = userRepository.findActiveUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
+
+        User admin = userRepository.findActiveUserByUsername(username).orElseThrow();
+        List<User> userList = new ArrayList<>();
+        userList.add(admin);
+        Page<User> pageData = PageUtil.listToPage(userList, pageNum, pageSize);
+        return CommonResult.success(CommonPage.restPage(pageData));
+    }
+
+    @RequestMapping(value = "/logout", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult logout(
+            HttpServletRequest request,
+            @RequestHeader(value = "Authorization") String bearer,
+            @RequestHeader(value = "User-Agent") String userAgent,
+            Principal principal) {
+
+        StopWatch sw = new StopWatch();
+        sw.start("logout Start");
+        //取得呼叫者的資訊
+        String username = principal.getName();
+        User user = userRepository.findActiveUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
+
+        String ipAddress = IpUtil.getIpAddr(request);
+
+        //登出時間更新
+        user.setLogoutTime(new Date());
+        userRepository.save(user);
+
+        sw.stop();
+        ApiEvents apiEvents = new ApiEvents(user.getId(), ipAddress, request.getMethod(), user.getUsername(), request.getRequestURL().toString(), 1, "success", userAgent, 1, sw.getTotalTimeMillis());
+        apiEventRepository.save(apiEvents);
+        return CommonResult.success("ok");
     }
 }

@@ -6,8 +6,7 @@
     <property name="LOG_PATTERN" value="%date{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
 
     <!-- 定義日誌儲存的路徑，不要配置相對路徑 -->
-    <property name="FILE_PATH" value="/home/kevin/project/log"/>
-
+    <property name="FILE_PATH" value="."/>
 
     <!-- 控制檯輸出日誌 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">

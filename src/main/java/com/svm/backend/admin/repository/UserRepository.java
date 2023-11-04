@@ -39,7 +39,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying
     public void updateById(Integer status,String updateName, Long updateUserId,Long id);
 
-
-
-
 }

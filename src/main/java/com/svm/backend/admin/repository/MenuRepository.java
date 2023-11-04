@@ -23,4 +23,7 @@ public interface MenuRepository  extends JpaRepository<Menus, Long> {
     @Query(value="SELECT m.id  id, m.parent_id, m.create_time , m.title title, m.level level, m.sort sort, m.name name, m.icon icon, m.hidden hidden  FROM role_menus rmr LEFT JOIN menus m ON rmr.menu_id = m.id WHERE rmr.role_id = :roleId AND m.id IS NOT NULL GROUP BY m.id",nativeQuery=true)
     public List<Menus> getMenuListByRoleId(@Param("roleId") Long roleId);
 
+
+    @Query(value="SELECT m.* FROM menus m WHERE m.parent_id = :parentId",nativeQuery=true)
+    public List<Menus> getMenuListByParentId(@Param("parentId") Long parentId);
 }

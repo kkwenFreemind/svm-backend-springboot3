@@ -11,7 +11,6 @@ import com.svm.backend.admin.repository.ApiEventRepository;
 import com.svm.backend.admin.repository.RoleRepository;
 import com.svm.backend.admin.repository.UserRepository;
 import com.svm.backend.common.api.CommonResult;
-import com.svm.backend.utils.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,8 +25,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @Author : Kevin Chang
- * @create 2023/10/3 上午8:45
+ * @Author : Kevin Chang on 2023/10/3 上午8:45
  */
 @Slf4j
 @Controller
@@ -52,30 +50,8 @@ public class RoleController {
             @RequestHeader(value = "User-Agent") String userAgent,
             Principal principal) {
 
-        //取得呼叫者的資訊
-        StopWatch sw = new StopWatch();
-        sw.start("Role listAll Start");
-        String ipAddress = IpUtil.getIpAddr(request);
-
-        String username = principal.getName();
-        User user = userRepository.findActiveUserByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
-
-        try {
-
-            List<Role> roleList = roleRepository.findAll();
-
-            sw.stop();
-            ApiEvents apiEvents = new ApiEvents(user.getId(), ipAddress, request.getMethod(), user.getUsername(), request.getRequestURL().toString(), 1, "success", userAgent, 0, sw.getTotalTimeMillis());
-            apiEventRepository.save(apiEvents);
-            return CommonResult.success(roleList);
-
-        } catch (Exception exception) {
-
-            ApiEvents apiEvents = new ApiEvents(999L, ipAddress, request.getMethod(), username, request.getRequestURL().toString(), 0, "failed", userAgent, 1, sw.getTotalTimeMillis());
-            apiEventRepository.save(apiEvents);
-            return CommonResult.failed();
-        }
+        List<Role> roleList = roleRepository.findAll();
+        return CommonResult.success(roleList);
     }
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
@@ -88,16 +64,7 @@ public class RoleController {
             @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
 
-        StopWatch sw = new StopWatch();
-        sw.start("Role list Start");
-        String ipAddress = IpUtil.getIpAddr(request);
-
-        //取得呼叫者的資訊
-        String username = principal.getName();
-        User user = userRepository.findActiveUserByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
-
-        pageNum = pageNum - 1;
+        pageNum = pageNum -1 ;
         Page<Role> roleList;
         if (Objects.isNull(keyword)) {
             Pageable pageable = PageRequest.of(pageNum, pageSize);
@@ -106,9 +73,6 @@ public class RoleController {
             List<Role> roleByLike = roleRepository.getRoleByLike(keyword);
             roleList = PageUtil.listToPage(roleByLike, pageNum, pageSize);
         }
-        sw.stop();
-        ApiEvents apiEvents = new ApiEvents(user.getId(), ipAddress, request.getMethod(), user.getUsername(), request.getRequestURL().toString(), 1, "success", userAgent, 0, sw.getTotalTimeMillis());
-        apiEventRepository.save(apiEvents);
         return CommonResult.success(CommonPage.restPage(roleList));
     }
 
@@ -120,20 +84,7 @@ public class RoleController {
             @RequestHeader(value = "User-Agent") String userAgent,
             @PathVariable Long roleId) {
 
-        StopWatch sw = new StopWatch();
-        sw.start("Role list menu Start");
-        String ipAddress = IpUtil.getIpAddr(request);
-
-        //取得呼叫者的資訊
-        String username = principal.getName();
-        User user = userRepository.findActiveUserByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
-
         List<Menus> roleListMenu = menuRepository.getMenuListByRoleId(roleId);
-
-        sw.stop();
-        ApiEvents apiEvents = new ApiEvents(user.getId(), ipAddress, request.getMethod(), user.getUsername(), request.getRequestURL().toString(), 1, "success", userAgent, 0, sw.getTotalTimeMillis());
-        apiEventRepository.save(apiEvents);
         return CommonResult.success(roleListMenu);
     }
 
@@ -147,23 +98,9 @@ public class RoleController {
             @RequestParam(value = "status") Integer status,
             Principal principal) {
 
-        StopWatch sw = new StopWatch();
-        sw.start("Role list menu Start");
-        String ipAddress = IpUtil.getIpAddr(request);
-
-        //取得呼叫者的資訊
-        String username = principal.getName();
-        User user = userRepository.findActiveUserByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
-
         Role role = roleRepository.findById(id).orElseThrow();
         role.setStatus(status);
         roleRepository.save(role);
-
-        sw.stop();
-        ApiEvents apiEvents = new ApiEvents(user.getId(), ipAddress, request.getMethod(), user.getUsername(), request.getRequestURL().toString(), 1, "success", userAgent, 0, sw.getTotalTimeMillis());
-        apiEventRepository.save(apiEvents);
-
         return CommonResult.success(null);
     }
 }

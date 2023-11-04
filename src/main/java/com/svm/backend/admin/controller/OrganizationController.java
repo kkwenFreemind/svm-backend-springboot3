@@ -5,15 +5,12 @@ import com.svm.backend.utils.PageUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import com.svm.backend.admin.model.ApiEvents;
 import com.svm.backend.admin.model.Organization;
 import com.svm.backend.admin.model.User;
-import com.svm.backend.admin.repository.ApiEventRepository;
 import com.svm.backend.admin.repository.OrganizationRepository;
 import com.svm.backend.admin.repository.UserRepository;
 import com.svm.backend.common.api.CommonPage;
 import com.svm.backend.common.api.CommonResult;
-import com.svm.backend.utils.IpUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,7 +18,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -30,8 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @Author : Kevin Chang
- * @create 2023/10/3 上午8:54
+ * @Author : Kevin Chang on 2023/10/3 上午8:54
  */
 @Slf4j
 @Controller
@@ -44,9 +39,6 @@ public class OrganizationController {
 
     @Autowired
     UserRepository userRepository;
-
-    @Autowired
-    ApiEventRepository apiEventRepository;
 
     /**
      *
@@ -66,24 +58,13 @@ public class OrganizationController {
             @RequestHeader(value = "User-Agent") String userAgent,
             Principal principal) {
 
-        StopWatch sw = new StopWatch();
-        sw.start("Org listD Start");
-
-        String ipAddress = IpUtil.getIpAddr(request);
-
         String username = principal.getName();
         User user = userRepository.findActiveUserByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
 
         //正文開始
-        pageNum = pageNum - 1;
         List<Organization> orgList = organizationRepository.findAll();
         Page<Organization> pageData = PageUtil.listToPage(orgList, pageNum, pageSize);
-        sw.stop();
-
-        //Success Audit log
-        ApiEvents apiEvents = new ApiEvents(user.getId(), ipAddress, request.getMethod(), user.getUsername(), request.getRequestURL().toString(), 1, "success", userAgent, 0, sw.getTotalTimeMillis());
-        apiEventRepository.save(apiEvents);
 
         return CommonResult.success(CommonPage.restPage(pageData));
     }
@@ -144,7 +125,6 @@ public class OrganizationController {
             @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
 
-        pageNum = pageNum - 1;
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<Organization> orgList = organizationRepository.findAll(pageable);
 

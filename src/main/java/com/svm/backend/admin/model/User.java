@@ -1,6 +1,5 @@
 package com.svm.backend.admin.model;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -13,8 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @Author : Kevin Chang
- * @create 2023/9/6 下午1:56
+ * @Author : Kevin Chang @create 2023/9/6 下午1:56
  */
 @Entity
 @Data

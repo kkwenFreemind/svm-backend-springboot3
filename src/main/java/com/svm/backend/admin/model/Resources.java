@@ -32,8 +32,10 @@ public class Resources {
     @Schema(description = "描述")
     private String description;
 
+    @ManyToOne
     @Schema(description = "資源分類ID")
-    private Long categoryId;
+    @JoinColumn(name = "category_id")
+    private ResourceCategory resourceCategory;
 
     @Override
     public String toString(){
@@ -47,8 +49,6 @@ public class Resources {
         appendFieldValue(dataBuilder, name);
         appendFieldValue(dataBuilder, url);
         appendFieldValue(dataBuilder, description);
-        appendFieldValue(dataBuilder, categoryId.toString());
-
         return dataBuilder.toString();
     }
 
