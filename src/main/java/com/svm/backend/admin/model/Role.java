@@ -50,9 +50,16 @@ public class Role {
     private Integer status;
 
     private Integer sort;
-    public Role() {
-
+    public Role(String name,String description,int status) {
+        this.adminCount = 0;
+        this.name = name;
+        this.description = description;
+        this.status = status;
+        this.sort = 0;
+        this.createTime = new Date();
     }
+
+    public Role(){}
 
 
 }

@@ -1,15 +1,13 @@
 package com.svm.backend.admin.controller;
 
 import com.svm.backend.admin.model.*;
-import com.svm.backend.admin.repository.MenuRepository;
+import com.svm.backend.admin.repository.*;
 import com.svm.backend.common.api.CommonPage;
+import com.svm.backend.utils.IpUtil;
 import com.svm.backend.utils.PageUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import com.svm.backend.admin.repository.ApiEventRepository;
-import com.svm.backend.admin.repository.RoleRepository;
-import com.svm.backend.admin.repository.UserRepository;
 import com.svm.backend.common.api.CommonResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,8 +19,11 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @Author : Kevin Chang on 2023/10/3 上午8:45
@@ -42,6 +43,10 @@ public class RoleController {
 
     @Autowired
     MenuRepository menuRepository;
+
+    @Autowired
+    ResourceRepository resourceRepository;
+
 
     @RequestMapping(value = "/listAll", method = RequestMethod.GET)
     @ResponseBody
@@ -103,4 +108,106 @@ public class RoleController {
         roleRepository.save(role);
         return CommonResult.success(null);
     }
+
+    @RequestMapping(value = "/create", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult create(
+            HttpServletRequest request,
+            @RequestHeader(value = "User-Agent") String userAgent,
+            @RequestBody Role role,
+            Principal principal) {
+
+        StopWatch sw = new StopWatch();
+        sw.start("updateStatus Start");
+        String ipAddress = IpUtil.getIpAddr(request);
+
+        String username = principal.getName();
+        User user = userRepository.findActiveUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
+
+        //正文開始
+        log.debug(role.getName()+","+role.getDescription()+","+role.getStatus());
+        Role newRole = new Role(
+                role.getName(),
+                role.getDescription(),
+                role.getStatus()
+        );
+        roleRepository.save(newRole);
+        sw.stop();
+
+        return CommonResult.failed();
+    }
+
+    @RequestMapping(value = "/allocMenu", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult allocMenu(
+            HttpServletRequest request,
+            @RequestHeader(value = "User-Agent") String userAgent,
+            @RequestParam Long roleId,
+            @RequestParam List<Long> menuIds,
+            Principal principal) {
+
+        //刪除roleId的menu關聯
+        Role role = roleRepository.findById(roleId).orElseThrow();
+        log.info("role menu size:"+role.getMenus().size());
+        List<Menus> copiedList = role.getMenus().stream().collect(Collectors.toList());
+        for (Menus menus : copiedList) {
+            Menus test = menuRepository.findById(menus.getId()).orElseThrow();
+            role.getMenus().remove(test);
+        }
+        log.debug("role menu size::"+role.getMenus().size());
+
+        //批量插入新關聯
+        for(Long id: menuIds){
+            log.debug("id::"+id);
+            Menus test = menuRepository.findById(id).orElseThrow();
+            role.getMenus().add(test);
+        }
+        log.debug("role menu size:::"+role.getMenus().size());
+        roleRepository.save(role);
+
+        return CommonResult.success(null);
+    }
+
+    @RequestMapping(value = "/listResource/{roleId}", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult<List<Resources>> listResource(
+            HttpServletRequest request,
+            @RequestHeader(value = "User-Agent") String userAgent,
+            @PathVariable Long roleId,
+            Principal principal) {
+
+        List<Resources> listResource =resourceRepository.getResourceByRoleId(roleId);
+        return CommonResult.success(listResource);
+    }
+
+    @RequestMapping(value = "/allocResource", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult allocResource(
+            HttpServletRequest request,
+            @RequestHeader(value = "User-Agent") String userAgent,
+            @RequestParam Long roleId,
+            @RequestParam List<Long> resourceIds,
+            Principal principal) {
+
+        //先删除原有關聯
+        Role role = roleRepository.findById(roleId).orElseThrow();
+        log.info("role resource size:"+role.getMenus().size());
+        List<Resources> copiedList = role.getResources().stream().collect(Collectors.toList());
+        for (Resources resources : copiedList) {
+            Resources test = resourceRepository.findById(resources.getId()).orElseThrow();
+            role.getResources().remove(test);
+        }
+        //批量插入新關聯
+        for(Long id: resourceIds){
+            log.debug("id::"+id);
+            Resources test = resourceRepository.findById(id).orElseThrow();
+            role.getResources().add(test);
+        }
+        log.debug("role resource size:::"+role.getMenus().size());
+        roleRepository.save(role);
+
+        return CommonResult.success(null);
+    }
+
 }

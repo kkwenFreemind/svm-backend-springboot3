@@ -26,4 +26,6 @@ public interface MenuRepository  extends JpaRepository<Menus, Long> {
 
     @Query(value="SELECT m.* FROM menus m WHERE m.parent_id = :parentId",nativeQuery=true)
     public List<Menus> getMenuListByParentId(@Param("parentId") Long parentId);
+
+
 }

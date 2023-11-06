@@ -14,4 +14,4 @@ logging:
   config: classpath:logback-spring-dev.xml
   level:
     com.svm.backend: trace
-    org.hibernate.SQL: DEBUG
+#    org.hibernate.SQL: DEBUG
