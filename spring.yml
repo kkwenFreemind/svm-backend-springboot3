@@ -1,0 +1,13 @@
+---
+version: "3.8"
+services:
+  spring:
+    restart: always
+    image: svm:latest
+    ports:
+      - 8080:8080
+    networks:
+      - mynetwork
+networks:
+  mynetwork:
+    driver: bridge
