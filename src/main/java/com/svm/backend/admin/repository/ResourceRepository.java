@@ -17,7 +17,7 @@ import java.util.List;
 @Repository
 public interface ResourceRepository  extends JpaRepository<Resources, Long> {
 
-    @Query(value = "select a.* from resources a left join role_resources b on (a.id = b.role_id) where b.role_id = :roleId",nativeQuery = true)
+    @Query(value = "select a.* from resources a left join role_resources b on (a.id = b.resource_id) where b.role_id = :roleId",nativeQuery = true)
     List<Resources> getResourceByRoleId(@Param("roleId") Long roleId);
 
 

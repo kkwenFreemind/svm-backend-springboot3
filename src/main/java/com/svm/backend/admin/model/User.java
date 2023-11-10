@@ -88,8 +88,6 @@ public class User {
     @Schema(description = "異動者")
     private String updateName;
 
-
-
     public User() {
     }
 

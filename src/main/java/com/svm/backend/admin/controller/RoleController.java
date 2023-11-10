@@ -19,8 +19,6 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -36,10 +34,6 @@ public class RoleController {
 
     @Autowired
     RoleRepository roleRepository;
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    ApiEventRepository apiEventRepository;
 
     @Autowired
     MenuRepository menuRepository;
@@ -47,6 +41,8 @@ public class RoleController {
     @Autowired
     ResourceRepository resourceRepository;
 
+    @Autowired
+    UserRolesRepository userRolesRepository;
 
     @RequestMapping(value = "/listAll", method = RequestMethod.GET)
     @ResponseBody
@@ -117,14 +113,6 @@ public class RoleController {
             @RequestBody Role role,
             Principal principal) {
 
-        StopWatch sw = new StopWatch();
-        sw.start("updateStatus Start");
-        String ipAddress = IpUtil.getIpAddr(request);
-
-        String username = principal.getName();
-        User user = userRepository.findActiveUserByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
-
         //正文開始
         log.debug(role.getName()+","+role.getDescription()+","+role.getStatus());
         Role newRole = new Role(
@@ -133,9 +121,7 @@ public class RoleController {
                 role.getStatus()
         );
         roleRepository.save(newRole);
-        sw.stop();
-
-        return CommonResult.failed();
+        return CommonResult.success(role);
     }
 
     @RequestMapping(value = "/allocMenu", method = RequestMethod.POST)
@@ -192,7 +178,6 @@ public class RoleController {
 
         //先删除原有關聯
         Role role = roleRepository.findById(roleId).orElseThrow();
-        log.info("role resource size:"+role.getMenus().size());
         List<Resources> copiedList = role.getResources().stream().collect(Collectors.toList());
         for (Resources resources : copiedList) {
             Resources test = resourceRepository.findById(resources.getId()).orElseThrow();
@@ -200,14 +185,50 @@ public class RoleController {
         }
         //批量插入新關聯
         for(Long id: resourceIds){
-            log.debug("id::"+id);
             Resources test = resourceRepository.findById(id).orElseThrow();
             role.getResources().add(test);
         }
-        log.debug("role resource size:::"+role.getMenus().size());
         roleRepository.save(role);
 
         return CommonResult.success(null);
     }
+
+    @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult update(
+            HttpServletRequest request,
+            @RequestHeader(value = "User-Agent") String userAgent,
+            @PathVariable Long id,
+            @RequestBody Role role,
+            Principal principal) {
+
+        Role updateRole = roleRepository.findById(id).orElseThrow();
+        updateRole.setStatus(role.getStatus());
+        updateRole.setDescription(role.getDescription());
+        updateRole.setName(role.getName());
+        roleRepository.save(updateRole);
+        return CommonResult.success(updateRole);
+    }
+
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult delete(
+            HttpServletRequest request,
+            @RequestHeader(value = "User-Agent") String userAgent,
+            @RequestParam("ids") List<Long> roleIds,
+            Principal principal) {
+
+        //是否有用戶使用該角色
+        for(Long id: roleIds){
+            log.debug("roleId:"+id);
+            List<UserRoles> userRolesList  = userRolesRepository.getUserByRoleId(id);
+            if(userRolesList.size()>0){
+                return CommonResult.failed("有用戶帳號使用該角色，無法刪除");
+            }
+        }
+        roleRepository.deleteAllById(roleIds);
+        return CommonResult.success(null);
+    }
+
 
 }

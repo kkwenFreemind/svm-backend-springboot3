@@ -32,10 +32,8 @@ public class Resources {
     @Schema(description = "描述")
     private String description;
 
-    @ManyToOne
     @Schema(description = "資源分類ID")
-    @JoinColumn(name = "category_id")
-    private ResourceCategory resourceCategory;
+    private Long categoryId;
 
     @Override
     public String toString(){

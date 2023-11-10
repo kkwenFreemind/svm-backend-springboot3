@@ -432,7 +432,7 @@ public class AdminController {
     public CommonResult updateRole(
             HttpServletRequest request,
             @RequestParam("adminId") Long adminId,
-            @RequestParam("roleIds") List<Integer> roleIds,
+            @RequestParam("roleIds") List<Long> roleIds,
             @RequestHeader(value = "User-Agent") String userAgent,
             Principal principal) {
 
@@ -452,7 +452,7 @@ public class AdminController {
         //建立新關聯
         if (!CollectionUtils.isEmpty(roleIds)) {
             List<UserRoles> list = new ArrayList<>();
-            for (Integer roleId : roleIds) {
+            for (Long roleId : roleIds) {
                 UserRoles userRoles = new UserRoles();
                 userRoles.setUser_id(adminId);
                 userRoles.setRole_id(roleId);

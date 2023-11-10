@@ -16,9 +16,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Author : Kevin Chang on 2023/9/13 上午9:43
@@ -52,15 +54,33 @@ public class ApiEventController {
         User user = userRepository.findActiveUserByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found: " + username));
 
+        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         //正文開始, list to page
-        List<ApiEvents> apiEventsList =new ArrayList<>();
-        if(Objects.isNull(keyword)){
-            apiEventsList = apiEventRepository.getEventByType(user.getId(),logType);
-        }else{
+        Date start = new Date();
+        Date end = new Date();
+        try {
+            if (startDateTime != null && endDateTime != null) {
+                start = dateTimeFormat.parse(startDateTime);
+                end = dateTimeFormat.parse(endDateTime);
+            }
+            Date finalStart = start;
+            Date finalEnd = end;
 
+            List<ApiEvents> apiEventsList = apiEventRepository.findAll().stream().
+                    filter(apiEvents ->
+                            (apiEvents.getLogType() == logType) &&
+                                    (apiEvents.getUserId() == user.getId()) &&
+                                    (startDateTime == null || apiEvents.getCreateTime().after(finalStart)) &&
+                                    (endDateTime == null || apiEvents.getCreateTime().before(finalEnd)) &&
+                                    (keyword == null || apiEvents.getEvent().contains(keyword)))
+                    .sorted(Comparator.comparing(ApiEvents::getCreateTime).reversed())
+                    .collect(Collectors.toList());
+
+            Page<ApiEvents> pageData = PageUtil.listToPage(apiEventsList, pageNum, pageSize);
+
+            return CommonResult.success(CommonPage.restPage(pageData));
+        } catch (Exception ex) {
+            return CommonResult.failed(ex.toString());
         }
-        Page<ApiEvents> pageData = PageUtil.listToPage(apiEventsList, pageNum, pageSize);
-
-        return CommonResult.success(CommonPage.restPage(pageData));
     }
 }
